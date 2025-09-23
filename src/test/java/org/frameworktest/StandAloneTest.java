@@ -3,12 +3,15 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import java.time.Duration;
 import java.util.List;
 
 
 public class StandAloneTest {
-    public static void main(String[] args) throws InterruptedException {
+    @Test
+    public void orderEndtoEnd() throws InterruptedException {
         WebDriver driver = new ChromeDriver();
 
         driver.manage().window().maximize();
