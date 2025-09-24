@@ -1,17 +1,18 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
 <suite name="Suite1" parallel="tests">
-<listeners>
-    <listener class-name="org.frameworktest.Listeners"/>
-</listeners>
+<groups>
+    <run>
+        <include name="ErrorHandling"/>
+    </run>
+</groups>
     <test name="Submit Order Test" thread-count="5">
         <classes>
             <class name="org.frameworktest.SubmitOrder"/>
+        </classes>
+    </test>
+    <test name="Error Validation Test" thread-count="5">
+        <classes>
             <class name="org.frameworktest.ErrorValidationTest"/>
         </classes>
     </test>
-<!--    <test name="Error Validation Test" thread-count="5">-->
-<!--        <classes>-->
-<!--            <class name="org.frameworktest.ErrorValidationTest"/>-->
-<!--        </classes>-->
-<!--    </test>-->
 </suite>
