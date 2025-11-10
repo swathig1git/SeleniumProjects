@@ -16,6 +16,9 @@ public class AbstractComponents {
     @FindBy(css="[routerlink*='cart']")
     WebElement cartHeader;
 
+    @FindBy(css=".ng-animating")
+    WebElement spinner;
+
 
 
     public AbstractComponents(WebDriver driver){
@@ -41,6 +44,7 @@ public class AbstractComponents {
     }
 
     public CartPage goToCartPage(){
+        waitForElementToDisappear(spinner);
         cartHeader.click();
         CartPage cartPage = new CartPage(driver);
         return cartPage;

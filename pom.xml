@@ -15,10 +15,16 @@
     </properties>
     <dependencies>
         <!-- Selenium -->
+<!--        <dependency>-->
+<!--            <groupId>org.seleniumhq.selenium</groupId>-->
+<!--            <artifactId>selenium-java</artifactId>-->
+<!--            <version>4.25.0</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>4.25.0</version>
+            <version>4.38.0</version>
         </dependency>
 
         <!-- TestNG -->
@@ -49,6 +55,28 @@
             <artifactId>extentreports</artifactId>
             <version>5.1.2</version>
         </dependency>
+
+        <!-- ✅ Rest Assured Core -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.5.0</version>
+        </dependency>
+
+        <!-- ✅ JSON Path (used for parsing JSON responses) -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-path</artifactId>
+            <version>5.5.0</version>
+        </dependency>
+
+        <!-- ✅ XML Path (optional, if you test XML APIs too) -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>xml-path</artifactId>
+            <version>5.5.0</version>
+        </dependency>
+
     </dependencies>
     <profiles>
         <profile>

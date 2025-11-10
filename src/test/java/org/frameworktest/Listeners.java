@@ -24,6 +24,7 @@ public class Listeners extends BaseTest implements ITestListener  {
     @Override
     public void onTestSuccess(ITestResult result){
         test.log(Status.PASS, "Test PAssed");
+        System.out.println(result.getMethod().getMethodName() + " passed successfully.");
 
     }
 

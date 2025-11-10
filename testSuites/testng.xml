@@ -1,17 +1,19 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
-<suite name="Suite1" parallel="tests">
-<listeners>
-    <listener class-name="org.frameworktest.Listeners"/>
-</listeners>
-    <test name="Submit Order Test" thread-count="5">
+<suite name="RegressionSuite">
+    <!--    <listeners>-->
+    <!--        <listener class-name="com.RetryAnalyzer.test.TestListener"/>-->
+    <!--        <listener class-name="com.RetryAnalyzer.test.RetryListener"/>-->
+    <!--    </listeners>-->
+    <test name="Regression">
+        <groups>
+            <run>
+                <include name="regression"/>
+            </run>
+        </groups>
         <classes>
-            <class name="org.frameworktest.SubmitOrder"/>
-            <class name="org.frameworktest.ErrorValidationTest"/>
+            <class name="org.frameworktest.EcommerceAPITest"/>
+            <class name="org.frameworktest.EcommerceHybridTest"/>
+            <class name="org.frameworktest.SubmitOrderEcommerceTest"/>
         </classes>
     </test>
-<!--    <test name="Error Validation Test" thread-count="5">-->
-<!--        <classes>-->
-<!--            <class name="org.frameworktest.ErrorValidationTest"/>-->
-<!--        </classes>-->
-<!--    </test>-->
 </suite>

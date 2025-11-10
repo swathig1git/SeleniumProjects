@@ -28,6 +28,9 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
+/justEdit
+/reports/
+/.idea/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
