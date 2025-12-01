@@ -1,6 +1,8 @@
 package org.utils;
 
-public class SAKSStringUtils {
+public class SAKSStringUtils
+
+{
     public static String  convertBrandNametoURL(String brandName){
         return  brandName.replaceAll(" \\+ ", "-")  // replace ' + ' with '-'
                     .replace(" ", "-")         // replace all spaces with '-'

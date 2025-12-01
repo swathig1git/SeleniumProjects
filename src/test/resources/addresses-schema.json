@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "allAddresses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "street": { "type": "string" },
+          "city": { "type": "string" }
+        },
+        "anyOf": [
+          { "required": ["street", "city"] },
+          { "maxProperties": 0 }
+        ]
+      }
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}
