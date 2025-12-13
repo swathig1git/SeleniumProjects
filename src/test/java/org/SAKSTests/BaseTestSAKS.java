@@ -1,5 +1,9 @@
 package org.SAKSTests;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.POJO.ProductType;
+import org.config.ConfigData;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -10,10 +14,14 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.DataProvider;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -47,8 +55,23 @@ public class BaseTestSAKS {
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         return driver;
     }
+    @BeforeSuite
+    public void beforeSuite() throws IOException {
+        ConfigData.loadConfig();
+    }
 
-//    @BeforeMethod(alwaysRun = true)
+    @DataProvider(name = "productData")
+    public Object[][] provideProductData() {
+        List<ProductType> list = ConfigData.getProductTypes();
+        Object[][] data = new Object[list.size()][1];
+
+        for (int i = 0; i < list.size(); i++) {
+            data[i][0] = list.get(i);
+        }
+        return data;
+    }
+
+    //    @BeforeMethod(alwaysRun = true)
 //    public void launchApplication() throws IOException {
 //        driver = initializeDiver();
 //        driver.get("https://ca.saks.com/en-ca/");
@@ -120,51 +143,6 @@ public class BaseTestSAKS {
         popupWatcherThread.start();
     }
 
-//    public void startPopupWatcher() {
-//        stopPopUpWatcher.set(false); // allow watcher to run
-//
-//        popupWatcherThread = new Thread(() -> {
-//            while (!stopPopUpWatcher.get() || !stopPopUpWatcher.get()) {
-//                try {
-//                    WebElement popupBtn = driver.findElement(
-//                            By.xpath("//button[text()='SHOP SAKS CANADA']")
-//                    );
-//                    WebElement cookieButton = driver.findElement(
-//                            By.xpath("//button[@id='onetrust-reject-all-handler']")
-//                    );
-//
-//                    if (popupBtn.isDisplayed()) {
-//                        popupBtn.click();
-//                        stopPopUpWatcher.set(true);
-//                    }
-//
-//                    if (cookieButton.isDisplayed()) {
-//                        cookieButton.click();
-//                        stopCookieWatcher.set(true);
-//                    }
-//
-//                    if (stopPopUpWatcher.get() && stopPopUpWatcher.get())
-//                        return;
-//
-//                    Thread.sleep(200); // similar to Playwright polling
-//
-//                } catch (Exception ignored) {
-//                    // popup not present yet
-//                }
-//
-//                // If browser is closed, stop watcher
-//                try {
-//                    driver.getTitle();
-//                } catch (Exception e) {
-//                    stopPopUpWatcher.set(true);
-//                    return;
-//                }
-//            }
-//        });
-//
-//        popupWatcherThread.start();
-//    }
-
     public void waitForPopupWatcherToFinish(long timeoutMillis) {
         long start = System.currentTimeMillis();
 
@@ -177,5 +155,23 @@ public class BaseTestSAKS {
                 Thread.sleep(100);
             } catch (InterruptedException ignored) {}
         }
+    }
+
+    @DataProvider(name = "productTypes")
+    public Object[][] getProductTypes() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        List<ProductType> types = mapper.readValue(
+                new File("src/test/resources/product-types.json"),
+                new TypeReference<List<ProductType>>() {}
+        );
+        return types.stream()
+                .map(pt -> new Object[]{pt})  // Single param per row
+                .toArray(Object[][]::new);
+    }
+
+    public void launchPage(ProductType productType){
+        driver.get(productType.getCategoryUrl());
+        removeOneTrustBanner();
+        startPopupWatcher();
     }
 }

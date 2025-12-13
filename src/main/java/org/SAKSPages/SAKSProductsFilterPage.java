@@ -42,8 +42,11 @@ public class SAKSProductsFilterPage extends AbstractComponentsSAKS {
     WebElement sizeXXSmall;
     @FindBy(xpath="//div[contains(@class,'ProductCardHeader__productCardBrandName')]")
     WebElement brandName;
+    @FindBy(xpath="[data-testid$='sideNavigation-sideNavigation-2'] button")
+    WebElement browseByButtons;
 
     By filterSelectedButton = By.xpath("//button[contains(@class,'FiltersSelectedButton__button')]");
+    By browseByButtonsBy = By.cssSelector("[data-testid$='sideNavigation-sideNavigation-2'] button");
 
 
     public SAKSProductsFilterPage(WebDriver driver){
@@ -75,7 +78,10 @@ public class SAKSProductsFilterPage extends AbstractComponentsSAKS {
         options.get(designerNumber).click();
     }
 
-
+    public List<WebElement> getBrowseByButtons() {
+        scrollIntoView(driver.findElement(browseByButtonsBy));
+        return driver.findElements(browseByButtonsBy);
+    }
     public WebElement getDesignerFilter() {
         scrollIntoView(designerFilter);
         return designerFilter;
@@ -86,16 +92,6 @@ public class SAKSProductsFilterPage extends AbstractComponentsSAKS {
         return designerOptionsBy;
     }
 
-
-//    public By getProductCardsBy() {
-//        return productCardsBy;
-//    }
-//
-//    public List<WebElement> getProductCards(){
-//
-//        scrollIntoView(filterSelectedButton);
-//        return driver.findElements(productCardsBy);
-//    }
 // This is the KEY method — returns the designer name for each visible product
 
     public List<String> getVisibleDesignerNames() {
@@ -110,6 +106,10 @@ public class SAKSProductsFilterPage extends AbstractComponentsSAKS {
     public void scrollToLoadMoreProducts() {
         ((JavascriptExecutor) driver)
                 .executeScript("window.scrollBy(0, window.innerHeight);");
+    }
+    public void scrollToElement(WebElement element) {
+        ((JavascriptExecutor) driver)
+        .executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
     public void waitForNewProductsToLoad(int previousCount) {
