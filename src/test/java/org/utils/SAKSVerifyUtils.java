@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SAKSVerifyUtils {
-    public static boolean verifyBrowseByButtons(WebDriver driver, List<WebElement> actualElements, List<String> expectedButtonNames) {
+    public static boolean verifyExpectedButtons(WebDriver driver, List<WebElement> actualElements, List<String> expectedButtonNames) {
         // Extract text
         List<String> actualButtonNames = actualElements.stream()
                 .map(element -> {
@@ -29,5 +29,7 @@ public class SAKSVerifyUtils {
 
         return true;
     }
+
+
 
 }

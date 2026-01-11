@@ -2,6 +2,7 @@ package org.SAKSTests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.POJO.ProductBrand;
 import org.POJO.ProductType;
 import org.config.ConfigData;
 import org.openqa.selenium.By;
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class BaseTestSAKS {
     public WebDriver driver;
     private Thread popupWatcherThread;
+    private Thread cookieWatcherThread;
     private AtomicBoolean stopPopUpWatcher = new AtomicBoolean(false);
     private AtomicBoolean stopCookieWatcher = new AtomicBoolean(false);
 
@@ -71,25 +73,12 @@ public class BaseTestSAKS {
         return data;
     }
 
-    //    @BeforeMethod(alwaysRun = true)
-//    public void launchApplication() throws IOException {
-//        driver = initializeDiver();
-//        driver.get("https://ca.saks.com/en-ca/");
-//        removeOneTrustBanner();
-//        startPopupWatcher();
-//
-//    }
+
     @AfterMethod(alwaysRun = true)
     public void tearDown(){
         driver.quit();
     }
 
-//    public void verifyURLMatch(String expectedURL, String actualURL){
-//        String expectedUrl = "https://ca.saks.com/en-ca/women/designers/" + designerURL;
-//        this.waitForURLToContain(expectedUrl);
-//        String actualUrl = driver.getCurrentUrl();
-//        Assert.assertEquals(actualUrl, expectedUrl, "URLs did not match.");
-//    }
 
     public void removeOneTrustBanner() {
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -157,21 +146,61 @@ public class BaseTestSAKS {
         }
     }
 
-    @DataProvider(name = "productTypes")
-    public Object[][] getProductTypes() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        List<ProductType> types = mapper.readValue(
-                new File("src/test/resources/product-types.json"),
-                new TypeReference<List<ProductType>>() {}
-        );
-        return types.stream()
-                .map(pt -> new Object[]{pt})  // Single param per row
-                .toArray(Object[][]::new);
+    public void startCookieWatcher() {
+        stopCookieWatcher.set(false); // allow watcher to run
+
+        cookieWatcherThread = new Thread(() -> {
+            while (!stopCookieWatcher.get()) {
+                try {
+                    WebElement rejectCookieButton = driver.findElement(
+                            By.xpath("//button[@id='onetrust-reject-all-handler']")
+                    );
+
+                    if (rejectCookieButton.isDisplayed()) {
+                        rejectCookieButton.click();
+                        stopCookieWatcher.set(true);
+                        return;
+                    }
+
+
+                    Thread.sleep(200); // similar to Playwright polling
+
+                } catch (Exception ignored) {
+                    // popup not present yet
+                }
+
+                // If browser is closed, stop watcher
+                try {
+                    driver.getTitle();
+                } catch (Exception e) {
+                    stopPopUpWatcher.set(true);
+                    return;
+                }
+            }
+        });
+
+        cookieWatcherThread.start();
     }
+
+    public void waitForCookieWatcherToFinish(long timeoutMillis) {
+        long start = System.currentTimeMillis();
+
+        while (!stopCookieWatcher.get()) {
+            if (System.currentTimeMillis() - start > timeoutMillis) {
+                throw new RuntimeException("Timed out waiting for popup watcher to finish");
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {}
+        }
+    }
+
+
 
     public void launchPage(ProductType productType){
         driver.get(productType.getCategoryUrl());
-        removeOneTrustBanner();
         startPopupWatcher();
+        startCookieWatcher();
     }
 }

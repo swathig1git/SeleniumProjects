@@ -2,6 +2,7 @@ package org.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.POJO.ProductBrand;
 import org.POJO.ProductType;
 
 import java.io.File;
@@ -11,6 +12,7 @@ import java.util.List;
 public class ConfigData {
 
     private static List<ProductType> productTypes;   // Holds the list from JSON
+    private static List<ProductBrand> productBrands;   // Holds the list from JSON
     private static boolean isLoaded = false;         // Prevents re-loading
 
     /**
@@ -23,8 +25,11 @@ public class ConfigData {
 
         // Update the path if your JSON is inside resources/
         File file = new File("src/test/resources/product-types.json");
-
         productTypes = mapper.readValue(file, new TypeReference<List<ProductType>>() {});
+
+        file = new File("src/test/resources/productBrands.json");
+        productBrands = mapper.readValue(file, new TypeReference<List<ProductBrand>>() {});
+
         isLoaded = true;
     }
 

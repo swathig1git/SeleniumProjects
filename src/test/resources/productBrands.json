@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Women Clothing",
+    "brands": ["Milly", "Theory"]
+  },
+  {
+    "name": "Men Clothing",
+    "brands": ["Brioni", "Scotch & Soda"]
+  },
+  {
+    "name": "Women Dresses",
+    "brands": ["ET OCHS", "Ronny Kobo"]
+  },
+  {
+    "name": "Women Shoes",
+    "brands": ["Giuseppe Zanotti", "Dear Frances"]
+  },
+  {
+    "name": "Men Shoes",
+    "brands": ["Bottega Veneta", "adidas"]
+  },
+  {
+    "name": "Women Handbags",
+    "brands": ["L'Alingi", "Judith Leiber Couture"]
+  },
+  {
+    "name": "Women Jewellery",
+    "brands": ["Alexis Bittar", "Boucheron"]
+  },
+  {
+    "name": "Women Accessories",
+    "brands": ["ETRO", "Versace"]
+  },
+  {
+    "name": "Men Accessories",
+    "brands": ["Saks Fifth Avenue", "AMI Paris"]
+  },
+  {
+    "name": "Women Beauty",
+    "brands": ["BABOR", "Sisley-Paris"]
+  },
+  {
+    "name": "Men Grooming",
+    "brands": ["Dr. Barbara Sturm", "U Beauty"]
+  },
+  {
+    "name": "Women Kids",
+    "brands": ["Angel Dear", "Mackage"]
+  },
+  {
+    "name": "Women Home",
+    "brands": ["Graccioza", "Christofle"]
+  },
+  {
+    "name": "Women Gifts",
+    "brands": ["Graccioza", "Versace"]
+  },
+  {
+    "name": "Men Gifts",
+    "brands": ["Roberto Coin", "Reiss"]
+  }
+]

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.testng.Assert.assertTrue;
-import static org.utils.SAKSVerifyUtils.verifyBrowseByButtons;
+import static org.utils.SAKSVerifyUtils.verifyExpectedButtons;
 
 
 public class SAKSProductFilterCommonTest extends BaseTestSAKS {
@@ -27,48 +27,69 @@ public class SAKSProductFilterCommonTest extends BaseTestSAKS {
     public void browseByMenuTest(ProductType product) {
         launchPage(product);
         driver.get(product.getCategoryUrl());
-//        System.out.println("Running test for: " + product.getName());
-//        System.out.println("URL: " + product.getCategoryUrl());
-//        System.out.println("Filters: " + product.getFilterList());
-//        System.out.println("Browse By: " + product.getBrowseByList());
 
         SAKSProductsFilterPage saksProductsFilterPage = new SAKSProductsFilterPage(driver);
         saksProductsFilterPage.scrollUntilProductsVisible(4);
-        boolean result = verifyBrowseByButtons(driver, saksProductsFilterPage.getBrowseByButtons(), product.getBrowseByList());
+        boolean result = verifyExpectedButtons(driver, saksProductsFilterPage.getBrowseByButtons(), product.getBrowseByList());
         Assert.assertTrue(result, "Browse By buttons validation failed for " + product.getName());
     }
 
-
-    @Test (groups={"regression"}, timeOut = 40000)
-    public void productDesignerFilterTest() throws InterruptedException, IOException {
+    @Test(groups={"regression"}, dataProvider = "productData")
+    public void filtersTest(ProductType product) {
+        launchPage(product);
+        driver.get(product.getCategoryUrl());
 
         SAKSProductsFilterPage saksProductsFilterPage = new SAKSProductsFilterPage(driver);
-        //waitForPopupWatcherToFinish(20000);
-        String designerName = "16Arlington";
-        saksProductsFilterPage.selectDesigner(designerName);
+        saksProductsFilterPage.scrollUntilProductsVisible(4);
+        boolean result = verifyExpectedButtons(driver, saksProductsFilterPage.getFilterButtons(), product.getFilterList());
+        Assert.assertTrue(result, "Filters validation failed for " + product.getName());
+    }
 
+    @Test(groups={"regression"}, dataProvider = "productData")
+    public void priceFilterTest(ProductType product) {
+        launchPage(product);
+        driver.get(product.getCategoryUrl());
+        waitForPopupWatcherToFinish(20000);
 
-        saksProductsFilterPage.waitForURLToContain("brand");
-        String actualUrl = driver.getCurrentUrl();
-        assertTrue(Objects.requireNonNull(driver.getCurrentUrl()).contains("brand"));
+        SAKSProductsFilterPage saksProductsFilterPage = new SAKSProductsFilterPage(driver);
+        saksProductsFilterPage.scrollUntilProductsVisible(4);
+        Integer minPrice = 500;
+        Integer maxPrice = 6000;
 
-        // Scroll until 40 products visible
-        saksProductsFilterPage.scrollUntilProductsVisible(40);
+        saksProductsFilterPage.updatePriceRange(minPrice, maxPrice);
 
-        // Get ALL visible designer names
-        List<String> designerNames = saksProductsFilterPage.getVisibleDesignerNames();
+        saksProductsFilterPage.scrollUntilProductsVisible(8);
+        List<Double> productCurrentPrices = saksProductsFilterPage.getAllProductCurrentPrices();
 
-        // Assert EVERY one is the correct designer
-        Assert.assertTrue(designerNames.stream().allMatch(name -> name.equals(designerName)),
-                "Not all products are by " + designerName + ". Found: " + designerNames);
+        boolean allPricesInRange = productCurrentPrices.stream()
+                .allMatch(price -> price >= minPrice && price <= maxPrice);
 
-        // Sanity check: Did we load enough?
-        Assert.assertTrue(designerNames.size() >= 20,
-                "Expected at least 20 products for reliable verification, but only " + designerNames.size() + " loaded");
-
-
-            Thread.sleep(5000);
+        Assert.assertTrue(
+                allPricesInRange,
+                "Some product prices are outside the range for " + product.getName()
+        );
 
     }
+
+    @Test(groups={"regression"}, dataProvider = "productData")
+    public void priceFilterOutOfRangeTest(ProductType product) {
+        launchPage(product);
+        driver.get(product.getCategoryUrl());
+        waitForPopupWatcherToFinish(20000);
+        //waitForCookieWatcherToFinish(30000);
+
+        SAKSProductsFilterPage saksProductsFilterPage = new SAKSProductsFilterPage(driver);
+        saksProductsFilterPage.scrollUntilProductsVisible(4);
+        Integer minPrice = 1000000;
+        Integer maxPrice = 2000000;
+
+        saksProductsFilterPage.updatePriceRange(minPrice, maxPrice);
+        Assert.assertTrue(
+                saksProductsFilterPage.isEmptyList(),
+                "Some product prices are in the range for " + product.getName()
+        );
+
+    }
+
 
 }

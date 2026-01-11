@@ -10,51 +10,83 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SAKSProductsFilterPage extends AbstractComponentsSAKS {
-    @FindBy(xpath="//h4//div[text()='Colour']")
-    WebElement colourFilter;
-
-    @FindBy(xpath="//button[@name='Green']")
-    WebElement greenColourFilter;
-//    @FindBy(css="a.CardImage__imageWrapper")
-//    WebElement productCards;
     By productBrandNameBy = By.xpath("//div[contains(@data-testid,'product-card')]//h4");
-    @FindBy(xpath="//div[text()='Only at Saks']")
-    WebElement onlyAtSaks;
     By designerFilterBy = By.xpath("//div[text()='Designers']");
     @FindBy(xpath="//div[text()='Designers']")
     WebElement designerFilter;
-    @FindBy(xpath="//div[text()='10 brand options']/following-sibling::div/button")
-    List<WebElement> designerOptions;
     By designerOptionsBy = By.xpath("//div[text()='10 brand options']/following-sibling::div/button");
-
-    @FindBy(xpath="//div[contains(text(),'brand options')]/following-sibling::div/button")
-    WebElement allDesignerOptions;
-    @FindBy(xpath="//button[text()='View All']")
-    WebElement designerViewAll;
-    @FindBy(xpath="//div[text()='Size']")
-    WebElement sizeFilter;
-    @FindBy(xpath="//button[text()='XX-Small, 00']")
-    WebElement sizeXXSmall;
-    @FindBy(xpath="//div[contains(@class,'ProductCardHeader__productCardBrandName')]")
-    WebElement brandName;
-    @FindBy(xpath="[data-testid$='sideNavigation-sideNavigation-2'] button")
-    WebElement browseByButtons;
-
-    By filterSelectedButton = By.xpath("//button[contains(@class,'FiltersSelectedButton__button')]");
     By browseByButtonsBy = By.cssSelector("[data-testid$='sideNavigation-sideNavigation-2'] button");
+    By filtersBy = By.cssSelector(".FiltersSidebar__button");
+
+    By priceFilterBy = By.cssSelector("button[aria-label='Price']");
+    By priceMinBy = By.cssSelector("#min");
+    By priceMaxBy = By.cssSelector("#max");
+    By updatePriceButtonBy = By.xpath("//button[text()='Update price']");
+    By productCurrentPrice = By.cssSelector("[data-testid*='currentPrice']");
+    By emptyList = By.cssSelector(".EmptyListingFallback__textWrapper");
 
 
+    public Boolean isEmptyList(){
+
+        WebElement emptyListMessage = driver.findElement(emptyList);
+        waitForWebElementToAppear(emptyListMessage);
+        return emptyListMessage.isDisplayed();
+    }
     public SAKSProductsFilterPage(WebDriver driver){
         super(driver);
         this.driver = driver;
         PageFactory.initElements(driver, this);
     }
 
+    public List<Double> getAllProductCurrentPrices(){
+        List<WebElement> priceElements = driver.findElements(productCurrentPrice);
+        List<String> prices = new ArrayList<>();
+
+        for (WebElement price : priceElements) {
+            prices.add(price.getText().trim());
+        }
+
+// Print all prices
+        prices.forEach(System.out::println);
+
+        List<Double> priceValues = priceElements.stream()
+                .map(e -> e.getText().replaceAll("[^0-9.]", "")) // remove $ , etc
+                .filter(s -> !s.isEmpty())
+                .map(Double::parseDouble)
+                .toList();
+
+        priceValues.forEach(System.out::println);
+
+        return priceValues;
+
+    }
+    public void updatePriceRange(Integer minPrice, Integer maxPrice){
+        scrollIntoView(priceFilterBy);
+        waitForWebElementToBePresent(priceFilterBy);
+        WebElement priceFilter = driver.findElement(priceFilterBy);
+        priceFilter.click();
+
+        scrollIntoView(priceMinBy);
+        waitForWebElementToBePresent(priceMinBy);
+        WebElement priceMin = driver.findElement(priceMinBy);
+        priceMin.sendKeys(minPrice.toString());
+
+        scrollIntoView(priceMaxBy);
+        waitForWebElementToBePresent(priceMaxBy);
+        WebElement priceMax = driver.findElement(priceMaxBy);
+        priceMax.sendKeys(maxPrice.toString());
+
+        scrollIntoView(updatePriceButtonBy);
+        waitForWebElementToBePresent(updatePriceButtonBy);
+        WebElement  updatePriceButton = driver.findElement(updatePriceButtonBy);
+        updatePriceButton.click();
+    }
     public int getBrandOptionsCount() {
         By brandOptionBy = By.xpath("//div[@role='status' and contains(text(), 'brand options')]");
         waitForWebElementToBePresent(brandOptionBy);
@@ -79,9 +111,19 @@ public class SAKSProductsFilterPage extends AbstractComponentsSAKS {
     }
 
     public List<WebElement> getBrowseByButtons() {
-        scrollIntoView(driver.findElement(browseByButtonsBy));
-        return driver.findElements(browseByButtonsBy);
+        return getWebElements(browseByButtonsBy);
     }
+
+    public List<WebElement> getFilterButtons() {
+        return getWebElements(filtersBy);
+    }
+
+    public List<WebElement> getWebElements(By elementBy) {
+        scrollIntoView(driver.findElement(elementBy));
+        return driver.findElements(elementBy);
+    }
+
+
     public WebElement getDesignerFilter() {
         scrollIntoView(designerFilter);
         return designerFilter;
