@@ -26,7 +26,6 @@ public class SAKSProductFilterCommonTest extends BaseTestSAKS {
     @Test(groups={"regression"}, dataProvider = "productData")
     public void browseByMenuTest(ProductType product) {
         launchPage(product);
-        driver.get(product.getCategoryUrl());
 
         SAKSProductsFilterPage saksProductsFilterPage = new SAKSProductsFilterPage(driver);
         saksProductsFilterPage.scrollUntilProductsVisible(4);
