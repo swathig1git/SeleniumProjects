@@ -21,6 +21,7 @@ public class FeatureDBTests {
         stmt = conn.createStatement();
     }
 
+
     @Test
     public void verifyAddProductAndFeatureTest(){
         Product product = new Product();

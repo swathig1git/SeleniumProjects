@@ -2,7 +2,9 @@ package org.dbApiTests;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.http.Cookie;
 import io.restassured.response.Response;
+import org.dbpojo.LoginRequest;
 import org.dbpojo.Product;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -26,6 +28,38 @@ public class DBTests {
         stmt = conn.createStatement();
 
         RestAssured.baseURI = "http://localhost:8080";
+    }
+
+    @Test
+    public void verifyLoginSuccessTest() {
+        LoginRequest loginRequest = new LoginRequest("Alice", "password");
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/users/login");
+
+        response.then()
+                .statusCode(200)
+                .body("message", equalTo("Login successful"));
+
+
+    }
+
+    @Test
+    public void verifyLoginFailureTest() {
+        LoginRequest loginRequest = new LoginRequest("Alice", "wrongpassword");
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/users/login");
+
+        response.then()
+                .statusCode(401)
+                .body("message", equalTo("Invalid credentials"));
     }
 
     @Test
@@ -94,6 +128,23 @@ public class DBTests {
         List<?> products = response.jsonPath().getList("$");
         assertNotNull(products);
         assertTrue(products.isEmpty());
+
+    }
+
+    @Test
+    public void verifyCookieProductListTest(){
+        Response response = RestAssured
+                .given()
+                .when()
+                .get("/products/productList");
+        response.prettyPrint();
+        response.then().statusCode(200)
+                .cookie("lastVisited", "productList");
+
+        Cookie cookie = response.getDetailedCookie("lastVisited");
+        assertTrue(cookie.isHttpOnly());
+        assertFalse(cookie.isSecured());
+        assertEquals(cookie.getPath(), "/");
 
     }
     @Test
