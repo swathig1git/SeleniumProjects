@@ -4,6 +4,8 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import io.restassured.response.Response;
+import org.dbpojo.CartItem;
+import org.dbpojo.CartResponse;
 import org.dbpojo.LoginRequest;
 import org.dbpojo.Product;
 import org.testng.annotations.BeforeMethod;
@@ -11,6 +13,7 @@ import org.testng.annotations.Test;
 
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -31,6 +34,152 @@ public class DBTests {
     }
 
     @Test
+    public void deleteUserTest() {
+        String userNameToDelete = "A";
+        Response response = RestAssured
+                .given()
+                .when()
+                .delete("/users/delete/{name}", userNameToDelete);
+
+        response.then().statusCode(200)
+                .body("message", equalTo("User deleted successfully"));
+    }
+    @Test
+    public void createUserTest() {
+        Map<String, String> user = new HashMap<>();
+        user.put("name", "AB");
+        user.put("email", "AB@b.com");
+        user.put("age", "30");
+        user.put("password", "password");
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(user)
+                .when()
+                .post("/users/register");
+
+        response.then().statusCode(201)
+                .body("message", equalTo("User created successfully"));
+    }
+
+    @Test
+    public void updateCartSuccessTest() throws SQLException {
+        LoginRequest loginRequest = new LoginRequest("Alice", "password");
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/users/login");
+        response.then()
+                .statusCode(200)
+                .body("message", equalTo("Login successful"))
+                .body("token", notNullValue());
+        String token = response.jsonPath().getString("token");
+
+
+        PreparedStatement cartStmt = conn.prepareStatement("select product_id, quantity  from cart_item where cart_id in(select id from cart where user_id in (select id from users where name= ?))");
+        cartStmt.setString(1, loginRequest.getName());
+
+        ResultSet rs = cartStmt.executeQuery();
+        Map<Integer, Integer> dbCartItems = new HashMap<>();
+
+        while (rs.next()){
+            Integer productId = rs.getInt("product_id");
+            Integer quantity = rs.getInt("quantity");
+            dbCartItems.put(productId, quantity);
+        }
+
+
+
+        Map<Integer, Integer> cartItem = new HashMap<>();
+        cartItem.put(2, 5); // productId: 2, quantity: 5
+        cartItem.put(4,3);
+
+        Map<String, Object> cart = new HashMap<>();
+        cart.put("products", cartItem);
+
+        Response addToCartResponse = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + token)
+                .body(cart)
+                .when()
+                .post("/cart/add");
+
+        addToCartResponse.then()
+                .statusCode(200);
+
+        CartResponse cartResponse = addToCartResponse.as(CartResponse.class);
+
+        for (CartItem cartItem1 : cartResponse.getItems()){
+            Integer productId = cartItem1.getProductId();
+            Integer quantity = cartItem1.getQuantity();
+            if (dbCartItems.containsKey(productId)){
+                assertEquals(quantity, (Integer)(dbCartItems.get(productId) + cartItem.getOrDefault(productId, 0)));
+            }
+            else {
+                assertEquals(quantity, cartItem.get(productId));
+            }
+        }
+
+
+
+    }
+        @Test
+    public void addToCartSuccessTest() {
+        LoginRequest loginRequest = new LoginRequest("Alice", "password");
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/users/login");
+
+        response.then()
+                .statusCode(200)
+                .body("message", equalTo("Login successful"))
+                .body("token", notNullValue());
+
+        String token = response.jsonPath().getString("token");
+
+        Map <Integer, Integer> cartItem = new HashMap<>();
+        cartItem.put(1, 2); // productId: 1, quantity:
+        cartItem.put(3,1);
+        Map<String, Object> cart = new HashMap<>();
+        cart.put("products", cartItem);
+
+//        {
+//            "products": {
+//            "1": 2,
+//                    "3": 1
+//        }
+//        }
+
+        Response addToCartResponse = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + token)
+                .body(cart)
+                .when()
+                .post("/cart/add");
+
+        addToCartResponse.then()
+                .statusCode(200);
+
+        CartResponse cartResponse = addToCartResponse.as(CartResponse.class);
+
+        Set<Integer> cartProductIds = cartResponse.getItems().stream().map(CartItem::getProductId).collect(Collectors.toSet());
+
+        for(Integer productId: cartItem.keySet()){
+            assertTrue(cartProductIds.contains(productId));
+        }
+
+
+
+
+    }
+    @Test
     public void verifyLoginSuccessTest() {
         LoginRequest loginRequest = new LoginRequest("Alice", "password");
         Response response = RestAssured
@@ -42,7 +191,8 @@ public class DBTests {
 
         response.then()
                 .statusCode(200)
-                .body("message", equalTo("Login successful"));
+                .body("message", equalTo("Login successful"))
+                .body("token", notNullValue());
 
 
     }
