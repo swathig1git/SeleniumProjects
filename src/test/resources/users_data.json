@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Alice",
+    "password": "password"
+  },
+  {
+    "name": "Bob",
+    "password": "password"
+  },
+  {
+    "name": "Charlie",
+    "password": "password"
+  },
+  {
+    "name": "john_doe",
+    "password": "securepass"
+  },
+  {
+    "name": "john doe",
+    "password": "securepass"
+  },
+  {
+    "name": "AB",
+    "password": "password"
+  }
+]

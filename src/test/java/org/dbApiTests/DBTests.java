@@ -62,39 +62,93 @@ public class DBTests {
                 .body("message", equalTo("User created successfully"));
     }
 
-    @Test
-    public void updateCartSuccessTest() throws SQLException {
-        LoginRequest loginRequest = new LoginRequest("Alice", "password");
+    public String loginAndGetToken(String username, String password) {
+        LoginRequest loginRequest = new LoginRequest(username, password);
         Response response = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
                 .post("/users/login");
+
         response.then()
                 .statusCode(200)
                 .body("message", equalTo("Login successful"))
                 .body("token", notNullValue());
-        String token = response.jsonPath().getString("token");
+
+        return response.jsonPath().getString("token");
+    }
+
+    @Test
+    public void deleteCartItemTest() throws SQLException {
+        String name = "Alice";
+        String token = loginAndGetToken("Alice", "password");
 
 
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + token)
+                .queryParam("productId", 2)
+                .when()
+                .delete("/cart/remove");
+
+
+
+        //response.prettyPrint();
+        response.then()
+                .statusCode(200);
+    }
+
+    @Test
+    public void viewCartSuccessTest() throws SQLException {
+        String name = "Alice";
+        String token = loginAndGetToken("Alice", "password");
+        Response response = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + token)
+                .when()
+                .get("/cart/view");
+
+        HashMap<Integer, Integer> dbCartItems = new HashMap<>();
+        dbCartItems = getCartItemsFromDb(name);
+        response.then()
+                .statusCode(200);
+        CartResponse cartResponse = response.as(CartResponse.class);
+        for (CartItem cartItem : cartResponse.getItems()){
+            Integer productId = cartItem.getProductId();
+            Integer quantity = cartItem.getQuantity();
+            assertEquals(quantity, dbCartItems.get(productId));
+        }
+    }
+
+    public HashMap<Integer, Integer> getCartItemsFromDb(String name) throws SQLException {
         PreparedStatement cartStmt = conn.prepareStatement("select product_id, quantity  from cart_item where cart_id in(select id from cart where user_id in (select id from users where name= ?))");
-        cartStmt.setString(1, loginRequest.getName());
+        cartStmt.setString(1, name);
 
         ResultSet rs = cartStmt.executeQuery();
-        Map<Integer, Integer> dbCartItems = new HashMap<>();
+        HashMap<Integer, Integer> dbCartItems = new HashMap<>();
 
         while (rs.next()){
             Integer productId = rs.getInt("product_id");
             Integer quantity = rs.getInt("quantity");
             dbCartItems.put(productId, quantity);
         }
+        return dbCartItems;
+    }
+    @Test
+    public void updateCartSuccessTest() throws SQLException {
+        String name = "Alice";
+        String token = loginAndGetToken("Alice", "password");
 
 
+
+        Map<Integer, Integer> dbCartItems = new HashMap<>();
+        dbCartItems = getCartItemsFromDb(name);
 
         Map<Integer, Integer> cartItem = new HashMap<>();
         cartItem.put(2, 5); // productId: 2, quantity: 5
-        cartItem.put(4,3);
 
         Map<String, Object> cart = new HashMap<>();
         cart.put("products", cartItem);
@@ -123,6 +177,32 @@ public class DBTests {
             }
         }
 
+    }
+    @Test
+    public void addToCartNoStockTest() throws SQLException {
+        String name = "Alice";
+        String token = loginAndGetToken(name, "password");
+
+        Map<Integer, Integer> dbCartItems = new HashMap<>();
+        dbCartItems = getCartItemsFromDb(name);
+
+        Map<Integer, Integer> cartItem = new HashMap<>();
+        cartItem.put(4, 5); // productId: 2, quantity: 5
+        cartItem.put(11,3);
+
+        Map<String, Object> cart = new HashMap<>();
+        cart.put("products", cartItem);
+
+        Response addToCartResponse = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", "Bearer " + token)
+                .body(cart)
+                .when()
+                .post("/cart/add");
+
+        addToCartResponse.then()
+                .statusCode(400);
 
 
     }
