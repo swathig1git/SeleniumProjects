@@ -13,6 +13,15 @@ Feature: SAKS Product Filter Tests
       | ExampleProduct1 |
       | ExampleProduct2 |
 
+  Scenario Outline: Filters test for <productName>
+    When I launch the category page for product "<productName>"
+    And I scroll until products are visible with count 4
+    Then the filter buttons should match the expected list for "<productName>"
+
+    Examples:
+      | productName |
+      | ExampleProduct1 |
+      | ExampleProduct2 |
 
   Scenario Outline: Price filter test for <productName>
     When I launch the category page for product "<productName>"
